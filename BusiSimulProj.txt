@@ -1,0 +1,159 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+//using static Unity.Mathematics.math;
+
+public class GameManager : MonoBehaviour
+{
+    public static float boxes = 0;
+    public static float cash = 1000f;
+    public static float BPS = 0;
+    public static float multiplier = 1f; //box multiplier
+    public static int freeEmployees = 0;
+    public static float hiringCost = 10f;
+    public static float Totalboxes = 0;
+    public static float Totalcash = 0;
+    public static int Totalemployee = 0;
+    public static int[] offices = new int[] {1, 0, 0};
+    public static float[] milestones = new float[] {500, 2000, 10000};
+    public static int marker = 0;
+
+    public static float[] salesmen = new float[] {0f, 2f, 100f, 150f, 150f}; //{amount, BPS, cost, current stamina, max stamina}
+    public static float[] warehouse = new float[] {0f, 1f, 100f, 300f, 300f}; //{amount, BPS, cost, current stamina, max stamina}
+    public static float[] manager = new float[] {0f, 2f, 500f, 300f, 300f};
+    public static float[] sUpgrade = new float[] {1f, 250f, .1f}; //{level, cost, maybe useless}: for salesmen
+    public static float[] wUpgrade = new float[] {1f, 200f, .1f};
+    public static float[] mUpgrade = new float[] {1f, 400f, .1f};
+    public static float[] sUpgradeS = new float[] {1f, 250f, .1f}; //{level, cost, maybe useless}: for salesmen // Stamina
+    public static float[] wUpgradeS = new float[] {1f, 200f, .1f};
+    public static float[] mUpgradeS = new float[] {1f, 400f, .1f};
+
+    public void cashUpdate(){
+        cash += boxes * 5 * multiplier;
+        Totalcash += boxes * 5 * multiplier;
+        boxes = 0;
+    }
+
+    public void addSalesmen(){
+        if(salesmen[2] <= cash && freeEmployees > 0 && !Game.salesmenBreak){
+            cash -= salesmen[2];
+            salesmen[0] += 1;
+            //salesmen[1] += 1;
+            salesmen[2] *= 1.1f;
+            BPS += (int)salesmen[1];
+            freeEmployees -= 1;
+        }
+    }
+
+    public void addWarehouse(){
+        if(warehouse[2] <= cash && freeEmployees > 0){
+            cash -= warehouse[2];
+            warehouse[0] += 1;
+            //warehouse[1] += 1;
+            warehouse[2] *= 1.1f;
+            BPS += (int)warehouse[1];
+            freeEmployees -= 1;
+        }
+    }
+
+    public void addManager(){
+        int min = Mathf.Min((int)salesmen[0], (int)warehouse[0]);
+        int maxMan = (min/10);
+        if(manager[2] <= cash && freeEmployees > 0 && manager[0] < maxMan){
+            cash -= manager[2];
+            manager[0] += 1;
+            //warehouse[1] += 1;
+            manager[2] *= 1.2f;
+            BPS += (int)manager[1];
+            freeEmployees -= 1;
+        }
+    }
+
+    public void hireEmployee(){
+        if(cash >= hiringCost){
+            freeEmployees += 1;
+            cash -= hiringCost;
+            Totalemployee += 1;
+        }
+        
+    }
+
+    public void salesmenUpgrade(){
+        if(sUpgrade[1] <= cash){
+            cash -= sUpgrade[1];
+            BPS -= (int)salesmen[0] * (int)salesmen[1];
+            salesmen[1] += 2;
+            sUpgrade[0] += 1;
+            if(sUpgrade[0] % 10 == 0)
+                salesmen[1] = Mathf.Ceil(salesmen[1]*1.2f);
+            BPS += (int)salesmen[0] * (int)salesmen[1];
+            sUpgrade[1] *= 1.5f;
+        }
+    }
+
+    public void warehouseUpgrade(){
+        if(wUpgrade[1] <= cash){
+            cash -= wUpgrade[1];
+            BPS -= (int)warehouse[0] * (int)warehouse[1];
+            warehouse[1] += 1;
+            wUpgrade[0] += 1;
+            if(wUpgrade[0] % 10 == 0)
+                warehouse[1] = Mathf.Ceil(warehouse[1]*1.2f);
+            BPS += (int)warehouse[0] * (int)warehouse[1];
+            wUpgrade[1] *= 1.5f;
+        }
+    }
+    
+    public void managerUpgrade(){
+        if(mUpgrade[1] <= cash){
+            cash -= mUpgrade[1];
+            BPS -= (int)manager[0] * (int)manager[1];
+            manager[1] += 2;
+            mUpgrade[0] += 1;
+            if(mUpgrade[0] % 10 == 0){
+                manager[1] = Mathf.Ceil(manager[1]*1.2f);
+            }
+            BPS += (int)manager[0] * (int)manager[1];
+            mUpgrade[1] *= 1.5f;
+        }
+    }
+
+    public void salesStaminaUp(){
+        if(sUpgradeS[1] <= cash){
+            cash -= sUpgrade[1];
+            salesmen[4] += 20f;
+            sUpgradeS[0] += 1;
+            if(sUpgradeS[0] % 10 == 0)
+                salesmen[4] = Mathf.Ceil(salesmen[4] * 1.1f);
+            sUpgradeS[1] *= 1.5f;
+            //Debug.Log(salesmen[4]);
+        }
+    }
+
+    public void wareStaminaUp(){
+        if(wUpgradeS[1] <= cash){
+            cash -= sUpgrade[1];
+            warehouse[4] += 40f;
+            wUpgradeS[0] += 1;
+            if(wUpgradeS[0] % 10 == 0)
+                warehouse[4] = Mathf.Ceil(warehouse[4]*1.1f);
+            wUpgradeS[1] *= 1.5f;
+        }
+    }
+
+    public void manStaminaUp(){
+        if(mUpgradeS[1] <= cash){
+            cash -= mUpgrade[1];
+            manager[4] += 40f;
+            mUpgradeS[0] += 1;
+            if(mUpgradeS[0] % 10 == 0)
+                manager[4] = Mathf.Ceil(manager[4]*1.1f);
+            mUpgradeS[1] *= 1.5f;
+        }
+    }
+    
+//Buy upgrade
+//multiplier gets updated
+//float upgrade updates level[0], price[1].
+//multiplier[2] stays the same
+}
